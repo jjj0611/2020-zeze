@@ -9,6 +9,7 @@ on:
     branches: [ dev ]
 
 env:
+  BUCKET: 'zeze-build/front'
   BUILD_DIR: 'static'
 
 jobs:
@@ -40,7 +41,7 @@ jobs:
       run: |
         mkdir ${BUILD_DIR}
         cp -r ./client/build/* ./${BUILD_DIR}
-        zip -r .${BUILD_DIR}.zip ./client/build/*
-    - name: check directory
-      run: ls
+        zip -r ${BUILD_DIR}.zip ./client/build/*
+    - name: Upload to S3
+      run: aws s3 cp --region ap-northeast-2 ${BUILD_DIR}.zip s3://$BUCKET/build/${BUILD_DIR}.zip --acl public-read-write
       
