@@ -39,7 +39,7 @@ jobs:
     - name: zip artifacts
       run: |
         mkdir ${BUILD_DIR}
-        cp ./client/build/* ./${BUILD_DIR}
+        cp -r ./client/build/* ./${BUILD_DIR}
         zip -r .${BUILD_DIR}.zip ./client/build/*
     - name: check directory
       run: ls
