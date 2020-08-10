@@ -11,6 +11,8 @@ on:
 env:
   BUCKET: 'zeze-build/front'
   BUILD_DIR: 'static'
+  LATEST: 'latest'
+  BACKUP: 'backup'
 
 jobs:
   build:
@@ -41,7 +43,25 @@ jobs:
       run: |
         mkdir ${BUILD_DIR}
         cp -r ./client/build/* ./${BUILD_DIR}
-        zip -r ${BUILD_DIR}.zip ./client/build/*
+        zip -r ${LATEST}.zip ./${BUILD_DIR}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+    - name: Check S3
+      uses: tuler/s3-check-action@master
+      id: check_S3
+      env:
+        FILE: ${{ env.LATEST }}.zip
+        AWS_REGION: 'ap-northeast-2'
+        AWS_S3_BUCKET: ${{ env.BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Create back up build
+      if: steps.check_S3.outputs.exists == 'true'
+      run: aws s3 mv s3://$BUCKET/${LATEST}.zip s3://$BUCKET/${BACKUP}.zip
     - name: Upload to S3
-      run: aws s3 cp --region ap-northeast-2 ${BUILD_DIR}.zip s3://$BUCKET/build/${BUILD_DIR}.zip --acl public-read-write
+      run: aws s3 cp --region ap-northeast-2 ${LATEST}.zip s3://$BUCKET/build/${LATEST}.zip --acl public-read-write
       
