@@ -27,6 +27,8 @@ jobs:
       run: cd client && yarn install
     - name: check current
       run: cd client && yarn build
+      env:
+        CI: 'false'
     - name: check directory
       run: ls
       
